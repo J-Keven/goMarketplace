@@ -29,10 +29,9 @@ interface Product {
 }
 
 const Dashboard: React.FC = () => {
-  const { addToCart } = useCart();
+  const { addToCart, products: test } = useCart();
 
   const [products, setProducts] = useState<Product[]>([]);
-
   useEffect(() => {
     async function loadProducts(): Promise<void> {
       const { data } = await api.get('products');

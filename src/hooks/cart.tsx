@@ -39,44 +39,76 @@ const CartProvider: React.FC = ({ children }) => {
     loadProducts();
   }, []);
 
-  const storagePoject = useCallback(async () => {
-    await AsyncStorage.setItem('@products:car', JSON.stringify(products));
-  }, [products]);
-
   const addToCart = useCallback(
     async product => {
       const indexProduct = products.find(item => item.id === product.id);
-
+      let newArryProducts = [];
       if (!indexProduct) {
-        setProducts([...products, { ...product, quantity: 1 }]);
+        newArryProducts = [...products, { ...product, quantity: 1 }];
       } else {
-        setProducts(
-          products.map(item => {
-            return item.id === product.id
-              ? {
-                  id: item.id,
-                  image_url: item.image_url,
-                  price: item.price,
-                  title: item.title,
-                  quantity: item.quantity + 1,
-                }
-              : item;
-          }),
-        );
+        newArryProducts = products.map(item => {
+          return item.id === product.id
+            ? {
+                id: item.id,
+                image_url: item.image_url,
+                price: item.price,
+                title: item.title,
+                quantity: item.quantity + 1,
+              }
+            : item;
+        });
       }
-
-      await storagePoject();
+      setProducts(newArryProducts);
+      await AsyncStorage.setItem(
+        '@products:car',
+        JSON.stringify(newArryProducts),
+      );
     },
-    [products, setProducts, storagePoject],
+    [products, setProducts],
   );
 
-  const increment = useCallback(async id => {
-    // TODO INCREMENTS A PRODUCT QUANTITY IN THE CART
-  }, []);
+  const increment = useCallback(
+    async id => {
+      const filterProducts = products.map(product => {
+        if (product.id === id) {
+          return {
+            id: product.id,
+            image_url: product.image_url,
+            price: product.price,
+            title: product.title,
+            quantity: product.quantity + 1,
+          };
+        }
+
+        return product;
+      });
+      setProducts(filterProducts);
+      await AsyncStorage.setItem(
+        '@products:car',
+        JSON.stringify(filterProducts),
+      );
+    },
+    [products, setProducts],
+  );
 
   const decrement = useCallback(
     async id => {
-      const filterProducts = products.filter(product => product.id !== id);
+      const filterProducts: Product[] = [];
+      products.forEach(product => {
+        if (product.id === id && product.quantity > 1) {
+          filterProducts.push({
+            id: product.id,
+            image_url: product.image_url,
+            price: product.price,
+            title: product.title,
+            quantity: product.quantity - 1,
+          });
+        }
+        if (product.id !== id) {
+          filterProducts.push(product);
+        }
+      });
+
       setProducts(filterProducts);
       await AsyncStorage.setItem(
         '@products:car',
